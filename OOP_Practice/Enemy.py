@@ -23,3 +23,20 @@ class Enemy:
 
     def attack(self):
         print(f"{self.get_type_of_enemy()} attacks you for {self.attack_damage} damage!")
+
+class Zombie(Enemy):
+    def __init__(self, health = 10, attack_damage = 1):
+        super().__init__("Zombie", health, attack_damage)
+
+    def talk(self):
+        print("Braaaains...")
+
+    def spread_disease(self):
+        print("You have been infected with a zombie virus!")
+
+class Ogure(Enemy):
+    def __init__(self, health = 10, attack_damage = 1):
+        super().__init__("Ogre", health, attack_damage)
+
+    def talk(self):
+        print("Me smash!")

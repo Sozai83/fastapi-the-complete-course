@@ -1,3 +1,6 @@
+import random
+
+
 class Enemy:
     ## Constructor for the Enemy class when initializing an enemy object.
     ## Self referts to the instance of the class itself.
@@ -24,6 +27,9 @@ class Enemy:
     def attack(self):
         print(f"{self.get_type_of_enemy()} attacks you for {self.attack_damage} damage!")
 
+    def special_attack(self):
+        print(f"{self.get_type_of_enemy()} has no special attack!")
+
 class Zombie(Enemy):
     def __init__(self, health = 10, attack_damage = 1):
         super().__init__("Zombie", health, attack_damage)
@@ -34,9 +40,21 @@ class Zombie(Enemy):
     def spread_disease(self):
         print("You have been infected with a zombie virus!")
 
+    def special_attack(self):
+        did_special_attack = random.random() < 0.5
+        if did_special_attack:
+            self.health_points += 2
+            print(f"{self.get_type_of_enemy()} has healed itself for 2 health points!")
+
 class Ogure(Enemy):
     def __init__(self, health = 10, attack_damage = 1):
         super().__init__("Ogre", health, attack_damage)
 
     def talk(self):
         print("Me smash!")
+    
+    def special_attack(self):
+        did_special_attack = random.random() < 0.2
+        if did_special_attack:
+            self.attack_damage += 4
+            print(f"{self.get_type_of_enemy()} has increased its attack damage by 4 points!")

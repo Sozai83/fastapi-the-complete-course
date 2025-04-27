@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from pydantic import BaseModel
 import copy
 
@@ -8,6 +8,7 @@ class Book(BaseModel):
     title: str
     author: str
     category: str
+    id: int = None
 
 BOOKS: list[Book] = [
     {'id': 1, 'title': 'Title One', 'author': 'Author One', 'category': 'science'},
@@ -17,6 +18,7 @@ BOOKS: list[Book] = [
     {'id': 5, 'title': 'Title Five', 'author': 'Author Five', 'category': 'math'},
     {'id': 6, 'title': 'Title Six', 'author': 'Author Two', 'category': 'math'}
 ]
+
 
 
 def filter_books_by_field(book, field, value):
@@ -32,7 +34,7 @@ def filter_books_by_field(book, field, value):
 })
 async def read_books(title: str = None, author: str = None, category: str = None):
     try:
-        return_books = copy.deepcopy(BOOKS)
+        return_books = BOOKS
         if title:
             if len(return_books) > 0:
                 return_books = list(filter(lambda book: filter_books_by_field(book, field='title', value=title), return_books))
@@ -66,7 +68,7 @@ async def read_book_by_id(book_id: int):
     raise HTTPException(status_code=404, detail="Book not found.")
 
 
-@app.post("/books/", responses={
+@app.post("/books/create_book", responses={
     201: {
         "description": "Book created successfully",
     },
@@ -77,19 +79,11 @@ async def read_book_by_id(book_id: int):
         "description": "Internal server error",
     }
 })
-async def create_book(book: Book):
+async def create_book(new_book: Book = Body(...)):
     try:
-        new_book = {
-            'id': len(BOOKS) + 1,
-            'title': book.title,
-            'author': book.author,
-            'category': book.category
-        }
-        BOOKS.append(new_book)
+        new_book.id = len(BOOKS) + 1
+        BOOKS.append(new_book.dict())
         return new_book
     
-    except Exception as e:
-        if e.status_code and e.status_code == 400:
-            raise HTTPException(status_code=e.status_code, detail=f"Unable to create a book. {e.detail}")
-        else:
-            raise HTTPException(status_code=500, detail="An error occurred while creating the book.")
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=f"Unable to create a book. {e.detail}")

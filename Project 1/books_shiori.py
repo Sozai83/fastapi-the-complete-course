@@ -88,7 +88,7 @@ async def read_book_by_id(book_id: int):
 })
 async def create_book(new_book: Book = Body()):
     try:
-        new_book.id = len(BOOKS) + 1
+        new_book.id = int(BOOKS[-1]['id']) + 1 if BOOKS else 1
         BOOKS.append(new_book.dict())
         return new_book
     
@@ -137,3 +137,28 @@ async def update_book(book_id: int, updated_book:BookUpdate = Body()):
     
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=f"Unable to update the book. {e.detail}")
+    
+
+@app.delete("/books/delete_book/{book_id}", responses={
+    200: {
+        "description": "Book deleted successfully",
+    },
+    404: {
+        "description": "Book not found",
+    },
+    500: {
+        "description": "Internal server error",
+    }
+})
+
+async def delete_book(book_id: int):
+    try:
+        book_to_delete = next((book for book in BOOKS if book['id'] == book_id), None)
+        if not book_to_delete:
+            raise HTTPException(status_code=404, detail="Book not found.")
+        
+        BOOKS.remove(book_to_delete)
+        return {"message": "Book deleted successfully."}
+    
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=f"Unable to delete the book. {e.detail}")

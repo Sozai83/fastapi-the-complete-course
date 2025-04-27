@@ -8,7 +8,7 @@ class Book(BaseModel):
     title: str
     author: str
     category: str
-    id: int = None
+    id: int | None = None
 
 BOOKS: list[Book] = [
     {'id': 1, 'title': 'Title One', 'author': 'Author One', 'category': 'science'},
@@ -79,7 +79,7 @@ async def read_book_by_id(book_id: int):
         "description": "Internal server error",
     }
 })
-async def create_book(new_book: Book = Body(...)):
+async def create_book(new_book: Book = Body()):
     try:
         new_book.id = len(BOOKS) + 1
         BOOKS.append(new_book.dict())

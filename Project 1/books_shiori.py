@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Body
 from pydantic import BaseModel
+from typing import Optional
 import copy
 
 app = FastAPI()
@@ -8,7 +9,13 @@ class Book(BaseModel):
     title: str
     author: str
     category: str
-    id: int | None = None
+    id: Optional[int] = None
+
+class BookUpdate(BaseModel):
+    title: Optional[str] = None
+    author: Optional[str] = None
+    category: Optional[str] = None
+    
 
 BOOKS: list[Book] = [
     {'id': 1, 'title': 'Title One', 'author': 'Author One', 'category': 'science'},
@@ -87,3 +94,46 @@ async def create_book(new_book: Book = Body()):
     
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=f"Unable to create a book. {e.detail}")
+    
+
+@app.put("/books/update_book/{book_id}", responses={
+    200: {
+        "description": "Book updated successfully",
+    },
+    404: {
+        "description": "Book not found",
+    },
+    400: {
+        "description": "Invalid book data",
+    },
+    500: {
+        "description": "Internal server error",
+    }
+})
+
+async def update_book(book_id: int, updated_book:BookUpdate = Body()):
+    try:
+        change_book =  next((book for book in BOOKS if book['id'] == book_id), None)
+        if not change_book:
+            raise HTTPException(status_code=404, detail="Book not found.")
+        
+        if updated_book.title is None \
+            and updated_book.category is None \
+            and updated_book.author is None:
+
+            raise HTTPException(status_code=400, detail="You need to pass at least one of the fields - title, category, author.")
+        
+        if updated_book.title is not None:
+            change_book['title'] = updated_book.title
+        
+        if updated_book.category is not None:
+            change_book['category'] = updated_book.category
+
+        if updated_book.author is not None:
+            change_book['author'] = updated_book.author
+        
+        return change_book
+
+    
+    except HTTPException as e:
+        raise HTTPException(status_code=e.status_code, detail=f"Unable to update the book. {e.detail}")

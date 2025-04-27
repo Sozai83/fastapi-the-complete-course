@@ -1,9 +1,15 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 import copy
 
 app = FastAPI()
 
-BOOKS = [
+class Book(BaseModel):
+    title: str
+    author: str
+    category: str
+
+BOOKS: list[Book] = [
     {'id': 1, 'title': 'Title One', 'author': 'Author One', 'category': 'science'},
     {'id': 2, 'title': 'Title Two', 'author': 'Author Two', 'category': 'science'},
     {'id': 3, 'title': 'Title Three', 'author': 'Author Three', 'category': 'history'},
@@ -58,3 +64,32 @@ async def read_book_by_id(book_id: int):
         if book.get('id') == book_id:
             return book
     raise HTTPException(status_code=404, detail="Book not found.")
+
+
+@app.post("/books/", responses={
+    201: {
+        "description": "Book created successfully",
+    },
+    400: {
+        "description": "Invalid book data",
+    },
+    500: {
+        "description": "Internal server error",
+    }
+})
+async def create_book(book: Book):
+    try:
+        new_book = {
+            'id': len(BOOKS) + 1,
+            'title': book.title,
+            'author': book.author,
+            'category': book.category
+        }
+        BOOKS.append(new_book)
+        return new_book
+    
+    except Exception as e:
+        if e.status_code and e.status_code == 400:
+            raise HTTPException(status_code=e.status_code, detail=f"Unable to create a book. {e.detail}")
+        else:
+            raise HTTPException(status_code=500, detail="An error occurred while creating the book.")
